@@ -1,0 +1,50 @@
+{
+  "gas": {
+    "name": "Хлорметан — пример 1 приложения 9",
+    "molar_mass_kg_mol": 0.051,
+    "adiabatic_index": 1.25,
+    "minimum_valid_temperature_k": 249.15,
+    "phase_and_ideal_gas_assumptions_confirmed": true
+  },
+  "atmosphere": {
+    "temperature_k": 291.15,
+    "surface_temperature_k": 291.15,
+    "pressure_pa": 101325.0,
+    "wind_speed_m_s": 3.2,
+    "wind_height_m": 10.0,
+    "roughness_m": 0.018,
+    "stability": "E",
+    "alpha_wind": 0.306,
+    "alpha_basis": "Линейная интерполяция таблицы 7-5: z=0.01: alpha=0.29; z=0.02: alpha=0.31, до 20 м. Интерполяция — решение реализации, требует согласования.",
+    "alpha_height_limit_m": 20.0,
+    "air_molar_mass_kg_mol": 0.02896,
+    "air_cp_j_kg_k": 1005.0
+  },
+  "thresholds_kg_m3": [
+    0.17291158773939957,
+    0.08645579386969979
+  ],
+  "threshold_labels": [
+    "НКПР",
+    "0,5 НКПР"
+  ],
+  "section_height_m": 0.0,
+  "feed": {
+    "rate_kg_s": 1.0,
+    "duration_s": 60.0
+  },
+  "plume_options": {
+    "distance_m": 500.0,
+    "observation_s": 180.0,
+    "space_step_m": 0.5,
+    "max_step_m": 1.0,
+    "rtol": 1e-07,
+    "atol": 1e-09
+  },
+  "snapshot_times_s": [
+    30.0,
+    60.0,
+    75.0
+  ],
+  "description": "Демонстрационный постоянный расход хлорметана; не контрольный пример приложения 9. Газ на входе в шлейф при температуре воздуха и атмосферном давлении."
+}

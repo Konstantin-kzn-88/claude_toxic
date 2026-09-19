@@ -1,0 +1,74 @@
+{
+  "gas": {
+    "name": "Хлорметан — пример 1 приложения 9",
+    "molar_mass_kg_mol": 0.051,
+    "adiabatic_index": 1.25,
+    "minimum_valid_temperature_k": 249.15,
+    "phase_and_ideal_gas_assumptions_confirmed": true
+  },
+  "vessel": {
+    "volume_m3": 2000.0,
+    "pressure_abs_pa": 101325.0,
+    "temperature_k": 291.15
+  },
+  "atmosphere": {
+    "temperature_k": 291.15,
+    "surface_temperature_k": 291.15,
+    "pressure_pa": 101325.0,
+    "wind_speed_m_s": 3.2,
+    "wind_height_m": 10.0,
+    "roughness_m": 0.018,
+    "stability": "E",
+    "alpha_wind": 0.306,
+    "alpha_basis": "Линейная интерполяция таблицы 7-5: z=0.01: alpha=0.29; z=0.02: alpha=0.31, до 20 м. Интерполяция — решение реализации, требует согласования.",
+    "alpha_height_limit_m": 20.0,
+    "air_molar_mass_kg_mol": 0.02896,
+    "air_cp_j_kg_k": 1005.0
+  },
+  "options": {
+    "duration_s": 600.0,
+    "output_step_s": 0.1,
+    "max_step_s": 0.5,
+    "rtol": 1e-07,
+    "atol": 1e-09
+  },
+  "thresholds_kg_m3": [
+    0.17291158773939957,
+    0.08645579386969979
+  ],
+  "thresholds_basis": "8.1% об. и 4.05% об., пересчитаны в кг/м³ при температуре и давлении окружающего воздуха; не локальные доли при переменной температуре.",
+  "receptors": [
+    {
+      "name": "Точка 50 м",
+      "x_m": 50.0,
+      "y_m": 0.0,
+      "z_m": 0.0
+    },
+    {
+      "name": "Точка 100 м",
+      "x_m": 100.0,
+      "y_m": 0.0,
+      "z_m": 0.0
+    },
+    {
+      "name": "Точка 200 м",
+      "x_m": 200.0,
+      "y_m": 0.0,
+      "z_m": 0.0
+    }
+  ],
+  "section_height_m": 0.0,
+  "maps_xy": {
+    "nx": 301,
+    "ny": 201,
+    "snapshot_times_s": [
+      10.0,
+      30.0,
+      60.0
+    ]
+  },
+  "threshold_labels": [
+    "НКПР",
+    "0,5 НКПР"
+  ]
+}
