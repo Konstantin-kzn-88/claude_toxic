@@ -40,7 +40,7 @@ class InputPanel(ttk.Frame):
             row+=1
             if title=='Вещество и ёмкость':
                 self.catalog_choice=tk.StringVar(value='Выбрать из справочника')
-                selector=ttk.Combobox(page,textvariable=self.catalog_choice,values=list(CATALOG),state='readonly')
+                selector=ttk.Combobox(page,textvariable=self.catalog_choice,values=[name for name in CATALOG if not (secondary and name=='Аммиак')],state='readonly')
                 selector.grid(row=row,column=0,columnspan=2,sticky='ew')
                 selector.bind('<<ComboboxSelected>>',self.apply_substance)
                 row+=1

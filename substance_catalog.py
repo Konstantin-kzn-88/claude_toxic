@@ -9,7 +9,6 @@ _ROWS = [
     ('Пропан', 44., 1.13, -42.),
     ('Бутан', 58., 1.10, -.5),
     ('Аммиак', 17., 1.34, -33.4),
-    ('Метан', 16., 1.42, -162.),
 ]
 CATALOG = {name: dict(molar_mass_g_mol=m, adiabatic_index=g,
                      boiling_temperature_c=t, source=SOURCE)
