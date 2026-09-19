@@ -6,6 +6,10 @@ from secondary import GasFeed, PlumeOptions, SecondaryCloud
 
 
 def validate_pair(primary, secondary):
+    from exposure import defaults, validate
+    defaults(primary);defaults(secondary);validate(primary);validate(secondary)
+    if primary['toxicity'] != secondary['toxicity']:
+        raise ValueError('Для суммы задайте одинаковые PCt50 и LCt50 в обеих вкладках')
     for section, cls, ignored in [('gas', Gas, set()), ('atmosphere', Atmosphere, {'alpha_basis'})]:
         a, b = asdict(cls(**primary[section])), asdict(cls(**secondary[section]))
         different = [k for k in a if k not in ignored and a[k] != b[k]]

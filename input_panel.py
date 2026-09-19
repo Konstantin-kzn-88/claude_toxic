@@ -10,7 +10,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from cloud import Gas, Vessel, Atmosphere, Options, PrimaryCloud
 
-from substance_catalog import CATALOG, TERRAIN_LABEL, city_f_defaults
+from substance_catalog import CATALOG, TERRAIN_LABEL, city_f_defaults, flammable_thresholds
 
 ROOT=Path(__file__).resolve().parent
 
@@ -88,16 +88,36 @@ class InputPanel(ttk.Frame):
         self.confirmed.set(False)
         self.thresholds.delete('1.0','end')
         self.base.pop('thresholds_basis',None)
-        note='Свойства загружены. Задайте нижнюю границу однофазной модели и пороги для выбранного вещества.'
+        for key in ('pct50_mg_min_l','lct50_mg_min_l'):
+            self.vars[('toxicity',key)].set(str(item[key]))
+        self.base['auto_limits_name']=name
+        self.base['auto_limits_text']=''
+        self.refresh_limits()
+        note='Свойства и доступные пороги загружены. Задайте нижнюю границу однофазной модели. PCt50/LCt50 — во вкладке «Токсодоза»; 0 означает, что критерий не задан.'
         if item['boiling_temperature_c'] is not None:
             note+=f"\nСправочная температура кипения: {item['boiling_temperature_c']:g} °C; она не заменяет проверку фазового состояния при заданном давлении."
         if item['molar_mass_g_mol']<28.96:
             note+='\nПри температуре воздуха газ легче воздуха: текущая вторичная модель его не поддерживает.'
         messagebox.showinfo('Справочник веществ',note+'\n'+item['source'])
 
+    def refresh_limits(self):
+        if not hasattr(self,'thresholds'):return
+        name=self.vars[('gas','name')].get()
+        if name!=self.base.get('auto_limits_name') or name not in CATALOG:return
+        if self.thresholds.get('1.0','end-1c')!=self.base.get('auto_limits_text'):return
+        try:
+            values=flammable_thresholds(name,float(self.vars[('gas','molar_mass_kg_mol')].get().replace(',','.'))*.001,
+                float(self.vars[('atmosphere','temperature_k')].get().replace(',','.'))+273.15,
+                float(self.vars[('atmosphere','pressure_pa')].get().replace(',','.'))*1000)
+        except ValueError:return
+        text='\n'.join(f'{label}; {value:.15g}' for label,value in zip(('НКПР','ВКПР'),values))
+        self.thresholds.delete('1.0','end');self.thresholds.insert('1.0',text)
+        self.base['auto_limits_text']=text
+
     def changed_physics(self,*_):
         if not self.loading and hasattr(self,'confirmed'):
             self.confirmed.set(False)
+            self.refresh_limits()
 
     def load(self,path,fresh=False):
         try:

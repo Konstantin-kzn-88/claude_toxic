@@ -1,3 +1,4 @@
+from exposure import TOXICITY_FIELDS, defaults as dose_defaults, validate as validate_dose
 """User input schema and reversible conversion between displayed units and SI JSON."""
 import copy
 import math
@@ -35,6 +36,8 @@ FIELDS = [
 ]
 
 
+FIELDS += TOXICITY_FIELDS
+
 def number(text, label):
     try: value=float(str(text).strip().replace(',','.'))
     except (ValueError,TypeError): raise ValueError(f'{label}: введите число') from None
@@ -43,7 +46,7 @@ def number(text, label):
 
 
 def completed(data):
-    d=copy.deepcopy(data)
+    d=dose_defaults(copy.deepcopy(data))
     for key, defaults in [('options',vars(Options())),('maps_xy',{'nx':301,'ny':201,'snapshot_times_s':[10.,30.,60.]})]:
         d.setdefault(key,{})
         for name,value in defaults.items(): d[key].setdefault(name,value)
@@ -84,7 +87,8 @@ def collect(base, values, confirmed, thresholds_text, receptors_text, snapshots_
         name=parts[0].strip();value=number(parts[1],'Порог')
         if not name or value<=0: raise ValueError('Нужны название порога и концентрация > 0')
         labels.append(name);thresholds.append(value)
-    if not thresholds: raise ValueError('Добавьте хотя бы один порог концентрации')
+    validate_dose(d)
+    if not thresholds and not any(d['toxicity'].values()): raise ValueError('Добавьте порог концентрации или токсодозы')
     d['thresholds_kg_m3']=thresholds;d['threshold_labels']=labels
     d['thresholds_basis']='Заданы пользователем в кг/м³ через окно исходных данных.'
     points=[]
@@ -108,4 +112,6 @@ def collect(base, values, confirmed, thresholds_text, receptors_text, snapshots_
         if isinstance(val,bool) or not isinstance(val,(int,float)) or not math.isfinite(val) or val<=0:
             raise ValueError('Некорректный нижний предел цветовой шкалы в JSON')
     PrimaryCloud(Gas(**d['gas']),Vessel(**d['vessel']),Atmosphere(**d['atmosphere']),Options(**d['options']))
+    from substance_catalog import refresh_collected_limits
+    refresh_collected_limits(d,base,thresholds_text)
     return d

@@ -29,7 +29,7 @@ class ProjectTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Вторичное'):validate_project(p)
 
     def test_incomplete_project_rejected_before_restoring(self):
-        p=example_project();p['editors']['secondary']['values'].pop()
+        p=example_project();p['editors']['secondary']['values'].pop(0)
         with self.assertRaises(ValueError):validate_drafts(p)
 
     def test_two_job_lifecycle_and_stop(self):

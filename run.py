@@ -89,5 +89,8 @@ def main():
         fig.savefig(args.output / 'receptors.png', dpi=160); plt.close(fig)
     print(json.dumps(dict(initial=result['initial'], stop_reason=result['stop_reason'], warnings=result['warnings']), ensure_ascii=False, indent=2))
 
+    from exposure import save_exposure
+    save_exposure(model,data,args.output)
+
 if __name__ == '__main__':
     main()

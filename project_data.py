@@ -13,7 +13,8 @@ def validate_project(project):
         try:
             d=project['editors'][name]
             module=secondary_input if name=='secondary' else input_data
-            values={(v['section'],v['key']):v['value'] for v in d['values']}
+            values=module.display_values(module.completed(d['base']))
+            values.update({(v['section'],v['key']):v['value'] for v in d['values']})
             outputs[name]=module.collect(d['base'],values,d['confirmed'],d['thresholds'],d['receptors'],d['snapshots'])
         except Exception as e:
             raise ValueError(('Первичное' if name=='primary' else 'Вторичное')+' облако: '+str(e)) from e
@@ -30,7 +31,8 @@ def validate_drafts(project):
         d=project['editors'][name]
         module.display_values(module.completed(d['base']))
         values={(v['section'],v['key']):v['value'] for v in d['values']}
-        if set(values)!={(f[1],f[2]) for f in module.FIELDS} or not all(isinstance(v,str) for v in values.values()):
+        expected={(f[1],f[2]) for f in module.FIELDS}
+        if not set(values)<=expected or any(k[0]!='toxicity' for k in expected-set(values)) or not all(isinstance(v,str) for v in values.values()):
             raise ValueError('Неполный набор полей: '+name)
         if type(d['confirmed']) is not bool or not all(isinstance(d[k],str) for k in ['thresholds','receptors','snapshots']):
             raise ValueError('Некорректный формат редактора: '+name)

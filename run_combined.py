@@ -85,4 +85,8 @@ def main():
                   'Общий расчёт ограничен временем первичной модели и наблюдения вторичной; вне области сумма неизвестна.',
                   'Массы двух источников задаются пользователем без двойного учёта.'] ))
 
+    from exposure import save_exposure
+    exposure_data=dict(a,receptors=points)
+    save_exposure(m,exposure_data,out)
+
 if __name__ == '__main__': main()

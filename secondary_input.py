@@ -1,3 +1,4 @@
+from exposure import TOXICITY_FIELDS, defaults as dose_defaults, validate as validate_dose
 """Secondary GUI fields, SI JSON adapter."""
 import copy
 from input_data import FIELDS as PRIMARY_FIELDS,number
@@ -16,8 +17,10 @@ FIELDS += [('Вещество и ёмкость','feed','rate_kg_s','Расхо�
  ('Дополнительно','plume_options','gaussian_core_fraction','Допуск доли ядра для гауссовского перехода',1,0,'number'),
  ('Дополнительно','plume_options','atol','Абсолютная точность',1,0,'number')]
 
+FIELDS += TOXICITY_FIELDS
+
 def completed(data):
-    d=copy.deepcopy(data)
+    d=dose_defaults(copy.deepcopy(data))
     for k,v in vars(PlumeOptions()).items():d.setdefault('plume_options',{}).setdefault(k,v)
     d.setdefault('threshold_labels',[]);d.setdefault('receptors',[]);d.setdefault('section_height_m',0.)
     d.setdefault('snapshot_times_s',[30.,60.,120.])
@@ -49,7 +52,8 @@ def collect(base,values,confirmed,thresholds_text,receptors_text,snapshots_text)
         c=number(p[1],'Порог')
         if c<=0:raise ValueError('Порог > 0')
         d['threshold_labels'].append(p[0].strip());d['thresholds_kg_m3'].append(c)
-    if not d['thresholds_kg_m3']:raise ValueError('Нужен хотя бы один порог')
+    validate_dose(d)
+    if not d['thresholds_kg_m3'] and not any(d['toxicity'].values()):raise ValueError('Нужен порог концентрации или токсодозы')
     d['receptors']=[]
     for line in receptors_text.splitlines():
         if not line.strip():continue
@@ -63,6 +67,8 @@ def collect(base,values,confirmed,thresholds_text,receptors_text,snapshots_text)
     d['snapshot_times_s']=sorted(set(times))
     if d['section_height_m']<0:raise ValueError('Z >= 0')
     build_model(d)
+    from substance_catalog import refresh_collected_limits
+    refresh_collected_limits(d,base,thresholds_text)
     return d
 
 def build_model(d):return SecondaryCloud(Gas(**d['gas']),GasFeed(**d['feed']),Atmosphere(**d['atmosphere']),PlumeOptions(**d['plume_options']))

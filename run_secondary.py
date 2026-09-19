@@ -83,4 +83,7 @@ def main():
     (args.output/'receptors.json').write_text(json.dumps(observations,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
     print(json.dumps({k:r[k] for k in ['status','stop_reason','released_mass_kg','initial_half_width_m','warnings']},ensure_ascii=False,indent=2))
 
+    from exposure import save_exposure
+    save_exposure(m,d,args.output)
+
 if __name__=='__main__':main()

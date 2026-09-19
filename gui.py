@@ -62,6 +62,7 @@ class App(tk.Tk):
             draft=d['editors'][name];p.loading=True
             try:
                 p.base=draft['base']
+                for k,v in p.inputs.display_values(p.inputs.completed(p.base)).items():p.vars[k].set(v)
                 for v in draft['values']:p.vars[(v['section'],v['key'])].set(v['value'])
                 p.confirmed.set(draft['confirmed']);p.snapshots.set(draft['snapshots'])
                 for key in ('thresholds','receptors'):
