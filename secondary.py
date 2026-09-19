@@ -44,7 +44,16 @@ class SecondaryCloud:
         self.wind_k=met.wind_speed_m_s/gamma(1/self.beta)/(self.hfactor*met.wind_height_m)**met.alpha_wind
         self.rho_air=met.pressure_pa*met.air_molar_mass_kg_mol/(R_GAS*met.temperature_k)
         self.rho_gas=met.pressure_pa*gas.molar_mass_kg_mol/(R_GAS*met.temperature_k)
-        if self.rho_gas<=self.rho_air:raise ValueError('Требуется газ тяжелее воздуха при общей температуре')
+        if self.rho_gas<=self.rho_air:
+            raise ValueError(
+                f'{gas.name}: при температуре {met.temperature_k-273.15:g} °C '
+                f'и давлении {met.pressure_pa/1000:g} кПа плотность газа '
+                f'{self.rho_gas:.3f} кг/м³ не выше плотности воздуха {self.rho_air:.3f} кг/м³. '
+                'Текущая вторичная модель рассчитывает только тяжёлый однофазный газ '
+                'при температуре воздуха. Охлаждение источника, капли, фазовые переходы '
+                'и подъём лёгкого газа пока не реализованы. '
+                'Плотность вычисляется по молярной массе, температуре и давлению; '
+                'плотность жидкости подставлять вместо неё нельзя.')
         self.u_star=friction_velocity(met)
         self.delta=dict(A=.22,B=.16,C=.11,D=.08,E=.06,F=.04)[met.stability]
         # Explicit inlet closure: pure-gas equivalent section B=H, Sy=0.
