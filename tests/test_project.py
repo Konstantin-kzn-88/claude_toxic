@@ -36,17 +36,19 @@ class ProjectTests(unittest.TestCase):
         # Exercise GUI orchestration without needing a window server.
         for stop in (False,True):
             with tempfile.TemporaryDirectory() as tmp:
-                fake=SimpleNamespace(last_output=Path(tmp),queue=['primary','secondary'],stopped=False,
+                fake=SimpleNamespace(last_output=Path(tmp),queue=['primary','secondary','combined'],stopped=False,
                     run_button=SimpleNamespace(configure=lambda **k:None),stop_button=SimpleNamespace(configure=lambda **k:None),
                     status=SimpleNamespace(set=lambda text:None),after=lambda *a:None,
-                    manifest={'status':'running','calculations':{n:{'status':'pending'} for n in ['primary','secondary']}})
+                    manifest={'status':'running','calculations':{n:{'status':'pending'} for n in ['primary','secondary','combined']}})
                 fake.poll=lambda:App.poll(fake);fake.write=App.write;fake.next_job=lambda:App.next_job(fake);fake.finish=lambda state:App.finish(fake,state)
                 for name in fake.queue:
                     folder=Path(tmp)/name;folder.mkdir();(folder/'result.json').write_text(json.dumps({'stop_reason':'requested_distance'}))
                 with patch('gui.subprocess.Popen',return_value=SimpleNamespace(poll=lambda:0)) as popen:
                     fake.next_job();fake.stopped=stop;App.poll(fake)
-                    if not stop:App.poll(fake)
-                    self.assertEqual(popen.call_count,1 if stop else 2)
+                    if not stop:
+                        App.poll(fake);App.poll(fake)
+                    self.assertEqual(popen.call_count,1 if stop else 3)
                     summary=json.loads((Path(tmp)/'summary.json').read_text())
                     self.assertEqual(summary['status'],'stopped' if stop else 'completed')
                     self.assertEqual(summary['calculations']['secondary']['status'],'not_run' if stop else 'completed')
+

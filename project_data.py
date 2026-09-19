@@ -17,6 +17,9 @@ def validate_project(project):
             outputs[name]=module.collect(d['base'],values,d['confirmed'],d['thresholds'],d['receptors'],d['snapshots'])
         except Exception as e:
             raise ValueError(('Первичное' if name=='primary' else 'Вторичное')+' облако: '+str(e)) from e
+    if project['mode']=='both':
+        from combined import validate_pair
+        validate_pair(outputs['primary'],outputs['secondary'])
     return outputs
 
 def validate_drafts(project):

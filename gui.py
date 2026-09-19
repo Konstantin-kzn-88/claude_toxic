@@ -11,7 +11,7 @@ from tkinter import ttk,filedialog,messagebox
 from input_panel import InputPanel,ROOT
 from project_data import SCHEMA,MODES,validate_project,validate_drafts
 
-LABELS={'primary':'Первичное','secondary':'Вторичное','both':'Оба облака'}
+LABELS={'primary':'Первичное','secondary':'Вторичное','both':'Оба облака','combined':'Суммарная концентрация'}
 
 class App(tk.Tk):
     def __init__(self,secondary=False,both=False):
@@ -22,13 +22,15 @@ class App(tk.Tk):
         head=ttk.Frame(self,padding=10);head.grid(row=0,column=0,sticky='ew')
         self.mode=tk.StringVar(value='both' if both else 'secondary' if secondary else 'primary')
         ttk.Label(head,text='Рассчитать:').pack(side='left')
-        for key,label in LABELS.items():ttk.Radiobutton(head,text=label,variable=self.mode,value=key,command=self.switch).pack(side='left',padx=12)
+        for key,label in LABELS.items():
+            if key=='combined':continue
+            ttk.Radiobutton(head,text=label,variable=self.mode,value=key,command=self.switch).pack(side='left',padx=12)
         self.tabs=ttk.Notebook(self);self.tabs.grid(row=1,column=0,sticky='nsew')
         self.panels={}
         for name in ('primary','secondary'):
             p=InputPanel(self.tabs,secondary=name=='secondary');self.panels[name]=p;self.tabs.add(p,text=LABELS[name]+' облако')
         foot=ttk.Frame(self,padding=10);foot.grid(row=2,column=0,sticky='ew');foot.columnconfigure(1,weight=1)
-        ttk.Label(foot,text='Два источника рассчитываются отдельно. Концентрации и зоны не объединяются.\nМассы источников задавайте без двойного учёта одного запаса вещества.',wraplength=1050).grid(row=0,column=0,columnspan=3,sticky='w')
+        ttk.Label(foot,text='В режиме «Оба облака» рассчитывается сумма концентраций: общее начало координат, общий старт t=0.\nВещество, погода и высота сечения должны совпадать.\nМассы источников задавайте без двойного учёта одного запаса вещества.',wraplength=1050).grid(row=0,column=0,columnspan=3,sticky='w')
         ttk.Label(foot,text='Папка результатов').grid(row=1,column=0)
         self.output=tk.StringVar(value=str(ROOT/'results_projects'))
         ttk.Entry(foot,textvariable=self.output).grid(row=1,column=1,sticky='ew',padx=8)
@@ -123,6 +125,10 @@ class App(tk.Tk):
             for name,d in data.items():
                 folder=self.last_output/name;folder.mkdir();self.write(folder/'input.json',d)
                 self.manifest['calculations'][name]=dict(status='pending',directory=name)
+            if project['mode']=='both':
+                folder=self.last_output/'combined';folder.mkdir();self.write(folder/'input.json',data)
+                self.queue.append('combined')
+                self.manifest['calculations']['combined']=dict(status='pending',directory='combined')
             self.run_button.configure(state='disabled');self.stop_button.configure(state='normal')
             self.next_job()
         except Exception as e:
@@ -135,7 +141,7 @@ class App(tk.Tk):
         self.current=self.queue.pop(0);folder=self.last_output/self.current
         self.manifest['calculations'][self.current]['status']='running';self.write(self.last_output/'summary.json',self.manifest)
         self.log=(folder/'run.log').open('w',encoding='utf-8')
-        runner='run_secondary.py' if self.current=='secondary' else 'run.py'
+        runner={'primary':'run.py','secondary':'run_secondary.py','combined':'run_combined.py'}[self.current]
         try:
             self.process=subprocess.Popen([sys.executable,str(ROOT/runner),'--input',str(folder/'input.json'),'--output',str(folder)],stdout=self.log,stderr=subprocess.STDOUT,env=dict(os.environ,PYTHONIOENCODING='utf-8'),creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0)
         except Exception as e:
@@ -155,6 +161,7 @@ class App(tk.Tk):
                 row['stop_reason']=result['stop_reason'];row['warnings']=result.get('warnings',[])
             except Exception as e:
                 row['status']='failed';row['error']=str(e);self.finish('failed');return
+            if self.current=='combined':self.manifest['combined_concentrations']=True
             self.next_job()
         else:self.finish(state)
 
@@ -162,7 +169,7 @@ class App(tk.Tk):
         for name in self.queue:self.manifest['calculations'][name]['status']='not_run'
         self.queue=[];self.manifest['status']=state;self.write(self.last_output/'summary.json',self.manifest)
         self.run_button.configure(state='normal');self.stop_button.configure(state='disabled')
-        self.status.set({'completed':'Расчёты завершены. Результаты раздельные: ','failed':'Ошибка: смотрите summary.json и run.log. ','stopped':'Остановлено; результаты могут быть неполными. '}[state]+str(self.last_output))
+        self.status.set({'completed':'Расчёты завершены. Результаты: ','failed':'Ошибка: смотрите summary.json и run.log. ','stopped':'Остановлено; результаты могут быть неполными. '}[state]+str(self.last_output))
 
     def stop(self):
         if self.process is not None:self.stopped=True;self.process.terminate()
