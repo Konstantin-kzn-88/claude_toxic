@@ -22,6 +22,15 @@ class ProjectTests(unittest.TestCase):
             p['mode']=mode;r=json.loads(json.dumps(p,ensure_ascii=False))
             self.assertEqual(validate_drafts(r),p);self.assertEqual(set(validate_project(r)),expected)
 
+    def test_older_project_gets_mass_defaults(self):
+        p=example_project()
+        for editor in p['editors'].values():
+            editor['base'].pop('flammable_mass',None)
+            editor['values']=[v for v in editor['values'] if v['section']!='flammable_mass']
+        validate_drafts(p)
+        for data in validate_project(p).values():
+            self.assertEqual(data['flammable_mass']['time_step_s'],5.)
+
     def test_invalid_inactive_draft_preserved_but_not_calculated(self):
         p=example_project();p['mode']='primary';p['editors']['secondary']['values'][0]['value']=''
         self.assertEqual(validate_drafts(p),p);self.assertEqual(set(validate_project(p)),{'primary'})

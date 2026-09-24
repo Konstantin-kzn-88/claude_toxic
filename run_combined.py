@@ -88,5 +88,7 @@ def main():
     from exposure import save_exposure
     exposure_data=dict(a,receptors=points)
     save_exposure(m,exposure_data,out)
+    from flammable_mass import save_flammable_mass
+    save_flammable_mass(m,a,out)
 
 if __name__ == '__main__': main()

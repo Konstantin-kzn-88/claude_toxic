@@ -1,3 +1,4 @@
+from flammable_mass import FIELDS as MASS_FIELDS, defaults as mass_defaults, validate as validate_mass
 from exposure import TOXICITY_FIELDS, defaults as dose_defaults, validate as validate_dose
 """Secondary GUI fields, SI JSON adapter."""
 import copy
@@ -17,10 +18,10 @@ FIELDS += [('Вещество и ёмкость','feed','rate_kg_s','Расхо�
  ('Дополнительно','plume_options','gaussian_core_fraction','Допуск доли ядра для гауссовского перехода',1,0,'number'),
  ('Дополнительно','plume_options','atol','Абсолютная точность',1,0,'number')]
 
-FIELDS += TOXICITY_FIELDS
+FIELDS += TOXICITY_FIELDS + MASS_FIELDS
 
 def completed(data):
-    d=dose_defaults(copy.deepcopy(data))
+    d=mass_defaults(dose_defaults(copy.deepcopy(data)))
     for k,v in vars(PlumeOptions()).items():d.setdefault('plume_options',{}).setdefault(k,v)
     d.setdefault('threshold_labels',[]);d.setdefault('receptors',[]);d.setdefault('section_height_m',0.)
     d.setdefault('snapshot_times_s',[30.,60.,120.])
@@ -69,6 +70,7 @@ def collect(base,values,confirmed,thresholds_text,receptors_text,snapshots_text)
     build_model(d)
     from substance_catalog import refresh_collected_limits
     refresh_collected_limits(d,base,thresholds_text)
+    validate_mass(d)
     return d
 
 def build_model(d):return SecondaryCloud(Gas(**d['gas']),GasFeed(**d['feed']),Atmosphere(**d['atmosphere']),PlumeOptions(**d['plume_options']))

@@ -32,7 +32,7 @@ def validate_drafts(project):
         module.display_values(module.completed(d['base']))
         values={(v['section'],v['key']):v['value'] for v in d['values']}
         expected={(f[1],f[2]) for f in module.FIELDS}
-        if not set(values)<=expected or any(k[0]!='toxicity' for k in expected-set(values)) or not all(isinstance(v,str) for v in values.values()):
+        if not set(values)<=expected or any(k[0] not in ('toxicity','flammable_mass') for k in expected-set(values)) or not all(isinstance(v,str) for v in values.values()):
             raise ValueError('Неполный набор полей: '+name)
         if type(d['confirmed']) is not bool or not all(isinstance(d[k],str) for k in ['thresholds','receptors','snapshots']):
             raise ValueError('Некорректный формат редактора: '+name)

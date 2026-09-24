@@ -6,6 +6,11 @@ from secondary import GasFeed, PlumeOptions, SecondaryCloud
 
 
 def validate_pair(primary, secondary):
+    from flammable_mass import limits, validate as validate_mass
+    validate_mass(primary);validate_mass(secondary)
+    a_limits,b_limits=limits(primary),limits(secondary)
+    if a_limits != b_limits:
+        raise ValueError("Для общей массы задайте одинаковые НКПР и ВКПР в обеих вкладках")
     from exposure import defaults, validate
     defaults(primary);defaults(secondary);validate(primary);validate(secondary)
     if primary['toxicity'] != secondary['toxicity']:

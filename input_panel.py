@@ -47,6 +47,8 @@ class InputPanel(ttk.Frame):
                 self.confirmed=tk.BooleanVar()
                 ttk.Checkbutton(page,text='Однофазность и применимость идеального газа для этих условий проверены',variable=self.confirmed).grid(row=row,column=0,columnspan=2,sticky='w',pady=15)
                 ttk.Label(page,text='Расход задаётся после струевого участка, при атмосферном давлении.\nТемпература газа равна температуре воздуха и поверхности.' if secondary else 'Pабс = Pизб + Pатм. Свойства газа и пороги вводятся для выбранного вещества.\nСмена названия вещества сама по себе не меняет его свойства.',wraplength=850).grid(row=row+1,column=0,columnspan=2,sticky='w')
+            if title=='Взрывоопасная масса':
+                ttk.Label(page,text='Расчёт включается при наличии обоих порогов НКПР и ВКПР во вкладке «Пороги и точки».\nИнтегрируется масса вещества во всём объёме, независимо от высоты карты.\nДля двух облаков сначала складываются концентрации; шаг и сетка берутся из первичного.\nРезультат: flammable_mass.png / .csv / .json. Максимум определяется по отсчётам времени.\nX/Y: базовое число узлов; итог считается с удвоением и сравнением сеток.\nПороги в кг/м³ фиксированы; локальные объёмные доли неизотермического облака не определяются.',wraplength=850).grid(row=row,column=0,columnspan=2,sticky='w',pady=12)
             if title=='Погода':
                 ttk.Button(page,text='F · Центры малых городов',command=self.apply_city_weather).grid(row=row,column=0,columnspan=2,sticky='w')
                 row+=1

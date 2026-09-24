@@ -16,6 +16,8 @@ def main():
     parser.add_argument('--input',type=Path,default=Path(__file__).parent/'examples/secondary_gas.json')
     parser.add_argument('--output',type=Path,default=Path(__file__).parent/'results_secondary')
     args=parser.parse_args();d=json.loads(args.input.read_text(encoding='utf-8-sig'))
+    from flammable_mass import validate as validate_mass
+    validate_mass(d)
     m=SecondaryCloud(Gas(**d['gas']),GasFeed(**d['feed']),Atmosphere(**d['atmosphere']),PlumeOptions(**d['plume_options']))
     r=m.run();r['input']=d;args.output.mkdir(exist_ok=True,parents=True)
     height=d.get('section_height_m',0.);thresholds=d.get('thresholds_kg_m3',[])
@@ -85,5 +87,7 @@ def main():
 
     from exposure import save_exposure
     save_exposure(m,d,args.output)
+    from flammable_mass import save_flammable_mass
+    save_flammable_mass(m,d,args.output)
 
 if __name__=='__main__':main()

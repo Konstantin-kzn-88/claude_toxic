@@ -19,6 +19,8 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.input.read_text(encoding='utf-8'))
     for threshold in data.get('thresholds_kg_m3', []): validate_threshold(threshold)
+    from flammable_mass import validate as validate_mass
+    validate_mass(data)
     model = PrimaryCloud(Gas(**data['gas']), Vessel(**data['vessel']), Atmosphere(**data['atmosphere']), Options(**data.get('options', {})))
     result = model.run()
     args.output.mkdir(parents=True, exist_ok=True)
@@ -91,6 +93,8 @@ def main():
 
     from exposure import save_exposure
     save_exposure(model,data,args.output)
+    from flammable_mass import save_flammable_mass
+    save_flammable_mass(model,data,args.output)
 
 if __name__ == '__main__':
     main()

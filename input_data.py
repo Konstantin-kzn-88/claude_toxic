@@ -1,3 +1,4 @@
+from flammable_mass import FIELDS as MASS_FIELDS, defaults as mass_defaults, validate as validate_mass
 from exposure import TOXICITY_FIELDS, defaults as dose_defaults, validate as validate_dose
 """User input schema and reversible conversion between displayed units and SI JSON."""
 import copy
@@ -36,7 +37,7 @@ FIELDS = [
 ]
 
 
-FIELDS += TOXICITY_FIELDS
+FIELDS += TOXICITY_FIELDS + MASS_FIELDS
 
 def number(text, label):
     try: value=float(str(text).strip().replace(',','.'))
@@ -46,7 +47,7 @@ def number(text, label):
 
 
 def completed(data):
-    d=dose_defaults(copy.deepcopy(data))
+    d=mass_defaults(dose_defaults(copy.deepcopy(data)))
     for key, defaults in [('options',vars(Options())),('maps_xy',{'nx':301,'ny':201,'snapshot_times_s':[10.,30.,60.]})]:
         d.setdefault(key,{})
         for name,value in defaults.items(): d[key].setdefault(name,value)
@@ -114,4 +115,5 @@ def collect(base, values, confirmed, thresholds_text, receptors_text, snapshots_
     PrimaryCloud(Gas(**d['gas']),Vessel(**d['vessel']),Atmosphere(**d['atmosphere']),Options(**d['options']))
     from substance_catalog import refresh_collected_limits
     refresh_collected_limits(d,base,thresholds_text)
+    validate_mass(d)
     return d
