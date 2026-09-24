@@ -1,5 +1,6 @@
-"""Reference properties transcribed from the supplied Order 385, Appendix 7."""
+"""Substance presets with reference or user-supplied property provenance."""
 import copy
+from cloud import R_GAS
 
 SOURCE = 'Приказ Ростехнадзора №385 от 02.11.2022, приложение 7, таблица 7-1'
 # M [g/mol], gamma, normal boiling temperature [°C]. Not a phase envelope.
@@ -34,6 +35,19 @@ for _name,_pc,_lc,_limits in [
     ('Бутан',0.,0.,(1.5,9.)),('Хлорметан',0.,0.,(8.1,17.4))]:
     CATALOG[_name].update(pct50_mg_min_l=_pc,lct50_mg_min_l=_lc,flammability_percent=_limits)
 CATALOG['Хлорметан']['limits_source']='https://www.cdc.gov/niosh/npg/npgd0403.html'
+
+_OIL_SOURCE = ('Пользовательские данные для паровой фазы нефти: M = 150 кг/кмоль; '
+    'НКПР/ВКПР = 2,9/15 % об.; Cp ≈ 1,96 кДж/(кг·К) при 300 °C '
+    '(температура интерпретирована как °C). k = Cp/(Cp − R/M), идеальный газ.')
+CATALOG['Нефть — паровая фаза'] = dict(
+    molar_mass_g_mol=150., adiabatic_index=1960./(1960.-R_GAS/.150),
+    cp_j_kg_k=1960., cp_temperature_k=573.15,
+    boiling_temperature_c=None, pct50_mg_min_l=0., lct50_mg_min_l=0.,
+    flammability_percent=(2.9,15.), source=_OIL_SOURCE, limits_source=_OIL_SOURCE,
+    input_note='Cp и рассчитанный k относятся к 300 °C. Применимость постоянного k '
+        'при другой температуре требует обоснования. Задайте нижнюю границу однофазности '
+        'для выбранных условий; 300 °C не является этой границей. '
+        'Во вторичном облаке вводится расход уже испарившегося вещества, кг/с.')
 
 
 def flammable_thresholds(name,molar_mass,temperature,pressure):

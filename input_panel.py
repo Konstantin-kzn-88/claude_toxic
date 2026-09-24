@@ -96,6 +96,8 @@ class InputPanel(ttk.Frame):
         self.base['auto_limits_text']=''
         self.refresh_limits()
         note='Свойства и доступные пороги загружены. Задайте нижнюю границу однофазной модели. PCt50/LCt50 — во вкладке «Токсодоза»; 0 означает, что критерий не задан.'
+        if item.get('input_note'):
+            note+='\n'+item['input_note']
         if item['boiling_temperature_c'] is not None:
             note+=f"\nСправочная температура кипения: {item['boiling_temperature_c']:g} °C; она не заменяет проверку фазового состояния при заданном давлении."
         if item['molar_mass_g_mol']<28.96:
@@ -142,4 +144,3 @@ class InputPanel(ttk.Frame):
 
     def data(self):
         return self.inputs.collect(self.base,{k:v.get() for k,v in self.vars.items()},self.confirmed.get(),self.thresholds.get('1.0','end'),self.receptors.get('1.0','end'),self.snapshots.get())
-
