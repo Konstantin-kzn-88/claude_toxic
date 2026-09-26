@@ -1,11 +1,13 @@
-"""Experimental single-phase primary cloud, Rostechnadzor Order 385 (2022).
-All quantities in SI. Equation numbers follow the supplied PDF, not its cross-links.
-No secondary cloud, phase equilibrium, toxic effect or risk calculation.
+"""Experimental single-phase primary cloud with default empirical calibration.
+Based on Order 385 (2022), with fitted drift and lateral-dispersion corrections.
+All quantities in SI. Calibration on one chlorine case is not general validation.
 """
 from dataclasses import dataclass, asdict, fields
 from math import pi, sqrt, gamma, log, atan, isfinite
 import numpy as np
 from scipy.integrate import solve_ivp
+from primary_calibration import (DRIFT_GAIN, INITIAL_SY_M, MAX_DURATION_S,
+                                 lateral_factor, metadata as calibration_metadata)
 
 R_GAS = 8.3144  # Appendix 1, J/(mol K)
 G = 9.81
@@ -72,8 +74,8 @@ def validate(gas, vessel, met, options):
         raise ValueError('Теплоёмкость воздуха даёт Cv <= 0')
     if min(vessel.temperature_k, met.temperature_k, met.surface_temperature_k) < gas.minimum_valid_temperature_k:
         raise ValueError('Температура ниже подтверждённого диапазона однофазной модели')
-    if options.duration_s > 600:
-        raise ValueError('Версия 0.1: t <= 600 с; переменное время осреднения ещё не реализовано')
+    if options.duration_s > MAX_DURATION_S:
+        raise ValueError('Эмпирическая первичная модель: t <= 1800 с')
     if options.duration_s / options.output_step_s > 100000:
         raise ValueError('Слишком много выходных временных точек (максимум 100000)')
 
@@ -148,7 +150,7 @@ class PrimaryCloud:
         core2 = max(radius**2 - sy2, 0.)
         return dict(total_mass_kg=total, radius_m=radius, sy2_m2=sy2, core_radius_m=sqrt(core2),
                     temperature_k=temperature, density_kg_m3=density, height_m=height,
-                    sz_m=sz, speed_m_s=speed, centre_x_m=x,
+                    sz_m=sz, speed_m_s=speed, drift_speed_m_s=DRIFT_GAIN * speed, centre_x_m=x,
                     centre_concentration_kg_m3=self.q / volume, area_m2=pi * radius**2)
 
     def rhs(self, t, y):
@@ -168,14 +170,17 @@ class PrimaryCloud:
         entrainment = .41 * u_t / phi  # (97)-(98)
         radius_dot = 1.15 * sqrt(max(G * height * (1 - self.rho_a / rho), 0))  # (108)
         mass_dot = pi * radius**2 * self.rho_a * entrainment + 2 * pi * radius * height * self.rho_a * .63 * radius_dot
-        # (109) multiplied by 2 Sy: regular at Sy=0, no artificial seed.
+        # (109) multiplied by 2 Sy, then the default empirical time correction.
         sigma_prime = self.delta * (1 + .5e-4 * max(x, 0)) / (1 + 1e-4 * max(x, 0))**1.5
         sy2_dot = 4 * sqrt(2/pi) * s['speed_m_s'] * (s['core_radius_m'] + .5 * sqrt(pi) * sqrt(max(sy2, 0))) * sigma_prime
+        sy2_dot *= lateral_factor(t)
         energy_dot = mass_dot * self.cv_a * self.met.temperature_k + pi * radius**2 * flux  # (111)
-        return [mass_dot, radius_dot, sy2_dot, energy_dot, s['speed_m_s']]
+        return [mass_dot, radius_dot, sy2_dot, energy_dot, s['drift_speed_m_s']]
 
     def run(self):
-        y0 = [self.q, self.initial['radius_m'], 0., self.q * self.cv_g * self.initial['temperature_k'], 0.]
+        # Keep the empirical seed smaller than the initial radius for tiny sources.
+        sy0 = min(INITIAL_SY_M, self.initial['radius_m'] * 1e-3)
+        y0 = [self.q, self.initial['radius_m'], sy0**2, self.q * self.cv_g * self.initial['temperature_k'], 0.]
         # Stop instead of silently applying unimplemented transitions/invalid physics.
         def core_vanish(t, y): return y[1]**2 - y[2]
         def buoyancy(t, y): return self.state(y)['density_kg_m3'] - self.rho_a
@@ -199,15 +204,17 @@ class PrimaryCloud:
         self.solution, self.times, self.states = sol, times, states
         warnings = [
             'Экспериментальная версия: результаты рассеяния не валидированы для проектного применения.',
+            'Основная первичная модель эмпирически откалибрована по одному примеру хлора ТОКСИ-3; точность для других условий не установлена.',
             'Фазовое равновесие не рассчитывается; однофазность и идеальность подтверждает пользователь.',
             'Максимумы концентрации определяются на конечной временной сетке и в заданном интервале.',
-            'Расчёт ограничен 600 с, тяжёлым облаком с ненулевым ядром и заданным диапазоном alpha.',
+            'Расчёт ограничен 1800 с, тяжёлым облаком с ненулевым ядром и заданным диапазоном alpha; зависимость дисперсии от времени эмпирическая.',
         ]
         if min(s['height_m'] for s in states) < self.met.roughness_m:
             warnings.append('H < шероховатости: результаты оценочные, п. 21.')
         if stop != 'requested_duration':
             warnings.append(f'Расчёт досрочно остановлен: {stop}; последующее рассеяние не вычислено.')
-        return dict(status='experimental_unvalidated', stop_reason=stop,
+        return dict(status='experimental_empirical_calibration', stop_reason=stop,
+                    primary_calibration=calibration_metadata(),
                     initial=self.initial, warnings=warnings,
                     time_s=times.tolist(), states=states)
 

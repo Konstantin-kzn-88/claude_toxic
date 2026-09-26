@@ -78,8 +78,8 @@ def test_bad_meteorology_rejected():
 
 def test_limits_are_explicit():
     m = model()
-    with unittest.TestCase().assertRaisesRegex(ValueError, '600'):
-        PrimaryCloud(m.gas, m.vessel, m.met, Options(duration_s=601))
+    with unittest.TestCase().assertRaisesRegex(ValueError, '1800'):
+        PrimaryCloud(m.gas, m.vessel, m.met, Options(duration_s=1801))
     with unittest.TestCase().assertRaisesRegex(ValueError, 'подтвердить'):
         PrimaryCloud(replace(m.gas, phase_and_ideal_gas_assumptions_confirmed=False), m.vessel, m.met)
     limited = PrimaryCloud(m.gas, m.vessel, replace(m.met, alpha_height_limit_m=9.), Options(duration_s=600))

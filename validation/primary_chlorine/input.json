@@ -1,0 +1,54 @@
+{
+  "gas": {
+    "name": "Хлор — сравнение с ТОКСИ-3",
+    "molar_mass_kg_mol": 0.0709,
+    "adiabatic_index": 1.3,
+    "minimum_valid_temperature_k": 241.75,
+    "phase_and_ideal_gas_assumptions_confirmed": true
+  },
+  "vessel": {
+    "volume_m3": 333.84464162072055,
+    "pressure_abs_pa": 110000.0,
+    "temperature_k": 313.15
+  },
+  "atmosphere": {
+    "temperature_k": 313.15,
+    "surface_temperature_k": 313.15,
+    "pressure_pa": 101325.0,
+    "wind_speed_m_s": 1.0,
+    "wind_height_m": 10.0,
+    "roughness_m": 0.55,
+    "stability": "F",
+    "alpha_wind": 0.65,
+    "alpha_basis": "Протокол пользователя; температура поверхности принята равной температуре воздуха. Для эмпирического сопоставления alpha=0.65 условно постоянно до 40 м; это не интерполяция таблицы методики.",
+    "alpha_height_limit_m": 40.0,
+    "air_molar_mass_kg_mol": 0.02896,
+    "air_cp_j_kg_k": 1005.0
+  },
+  "options": {
+    "duration_s": 1800.0,
+    "output_step_s": 0.25,
+    "max_step_s": 0.25,
+    "rtol": 1e-07,
+    "atol": 1e-09
+  },
+  "thresholds_kg_m3": [],
+  "thresholds_basis": "Только токсодозы из снимка результатов.",
+  "receptors": [],
+  "section_height_m": 0.0,
+  "maps_xy": {
+    "nx": 301,
+    "ny": 201,
+    "snapshot_times_s": [
+      10.0,
+      60.0,
+      300.0,
+      600.0
+    ]
+  },
+  "threshold_labels": [],
+  "toxicity": {
+    "pct50_mg_min_l": 0.6,
+    "lct50_mg_min_l": 6.0
+  }
+}

@@ -8,6 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from combined import CombinedCloud
+from primary_calibration import metadata as calibration_metadata
 
 
 def write(path, value):
@@ -77,6 +78,7 @@ def main():
             observations.append(dict(point=p, status='experimental_superposition', sampled_max_kg_m3=float(values[:, 2].max())))
     write(out/'receptors.json', observations)
     write(out/'result.json', dict(status='experimental_superposition', stop_reason='common_valid_interval',
+        primary_calibration=calibration_metadata(),
         time_end_s=m.time_end, x_max_m=float(m.secondary.x[-1]), section_height_m=height,
         images=images, skipped_snapshot_times_s=[t for t in requested if t not in snapshots],
         max_time_step_s=float(np.max(np.diff(times))) if len(times)>1 else 0.,

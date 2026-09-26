@@ -85,7 +85,9 @@ def receptor(model, x_m, y_m=0., z_m=0., thresholds=()):
         f = lambda t: float(model.concentration(t, x_m, y_m, z_m)) - threshold
         for i in range(len(c)-1):
             if above[i] == above[i+1]: continue
-            crossing = float(brentq(f, model.times[i], model.times[i+1], xtol=1e-8))
+            # The calibrated early cloud has a steep edge; refine the crossing
+            # enough to avoid a visible concentration residual at entry/exit.
+            crossing = float(brentq(f, model.times[i], model.times[i+1], xtol=1e-12))
             if above[i+1]:
                 start = crossing
             else:

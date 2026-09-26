@@ -48,7 +48,12 @@ class ZoneTests(unittest.TestCase):
             self.assertAlmostEqual(float(self.m.concentration(b, 50.)), .2, places=7)
 
     def test_open_exposure_not_reported_as_completed(self):
-        obs = receptor(self.m, 50., thresholds=[1e-10])
+        # Choose a fixed receptor that is actually inside the cloud at the end,
+        # independently of its drift speed or lateral-dispersion calibration.
+        end = float(self.m.times[-1])
+        x = float(self.m.state(self.m.solution.sol(end))['centre_x_m'])
+        threshold = float(self.m.concentration(end, x)) / 2
+        obs = receptor(self.m, x, thresholds=[threshold])
         self.assertTrue(obs['threshold_exposure'][0]['active_at_end'])
         self.assertIsNone(obs['threshold_exposure'][0]['last_exit_s'])
 
